@@ -21,11 +21,14 @@ except ImportError:
 
 DND_AVAILABLE = TkinterDnD is not None and DND_FILES is not None
 
-APP_VERSION = "0.9.1"
+APP_VERSION = "0.9.2"
 
 
 def get_app_dir() -> str:
     if getattr(sys, "frozen", False):
+        # PyInstallerの一時ディレクトリを優先的に使用
+        if hasattr(sys, "_MEIPASS"):
+            return sys._MEIPASS
         return os.path.dirname(sys.executable)
     return os.path.dirname(os.path.abspath(__file__))
 
@@ -60,7 +63,7 @@ SUPPORTED_OUTPUT_FORMATS = {
 }
 CONTEXT_MENU_BASE = r"Software\Classes\*\shell"
 ICON_FILENAME = "imgconv.ico"
-MENU_ICON = rf"{os.path.join(os.path.dirname(os.path.abspath(__file__)), ICON_FILENAME)}"
+MENU_ICON = os.path.join(get_app_dir(), ICON_FILENAME)
 FORMAT_MENU_ITEMS = [
     ("jpg", "JPGに変換 (品質85%)"),
     ("png", "PNGに変換"),
