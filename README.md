@@ -1,63 +1,53 @@
-# Windows 画像フォーマットコンバーター
+# imgconv - インストーラー不要の画像変換ツール
 
-Windows向けの画像変換アプリケーションです。`HEIC/HEIF` を含む多くの画像形式を `JPG`, `PNG`, `WEBP`, `BMP` に変換できます。
+このドキュメントは、`imgconv.exe` を受け取ったユーザー向けの使い方です。
 
-## セットアップ
+## できること
 
-1. Python 3.11+ をインストール
-2. 仮想環境を作成し、アクティベート
-   ```powershell
-   python -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   ```
-3. 依存パッケージをインストール
-   ```powershell
-   pip install -r requirements.txt
-   ```
+- HEIC を含む画像を JPG / PNG / WEBP / BMP に変換
+- 複数ファイルの一括変換
+- 右クリックメニューから直接変換（登録した場合）
+- 変換時に画質、Exif取り扱い、リサイズを選択可能
+- ICO 形式への出力はサポートしていません
+- テーマとウィンドウサイズを保存して、次回起動時にも復元
 
 ## 使い方
 
-- GUI を起動する:
-  ```powershell
-  python main.py
-  ```
-- CLI で変換する:
-  ```powershell
-  python main.py --convert-to jpg "C:\path\to\image.heic"
-  ```
-- 右クリックメニューを登録/解除する:
-  ```powershell
-  python main.py --register-menu
-  python main.py --unregister-menu
-  ```
+1. `imgconv.exe` をダブルクリックして起動します。
+2. GUI が表示されたら、以下の操作が行えます。
+   - 画像ファイルをドラッグ＆ドロップ
+   - `ファイルを追加` や `フォルダを追加` で読み込み
+   - 変換後の出力形式を選択
+   - 画質やサイズを設定
+   - `変換を開始` を押す
 
-## PyInstaller で EXE 化
+## 右クリックメニューを使う場合
 
-1. `pyinstaller` をインストール
+`imgconv.exe` で右クリックメニューを使いたい場合は、次の手順で登録します。
+
+1. `imgconv.exe` を起動します。
+2. 右上の `設定` をクリックします。
+3. `右クリックメニュー` 欄で変換したい形式を選択します。
+4. `登録` ボタンを押します。
+
+登録すると、エクスプローラーで画像を右クリックしたときに「JPGに変換」「PNGに変換」などのメニューが表示されます。
+
+## 右クリックメニューを解除する場合
+
+1. `imgconv.exe` を起動します。
+2. `設定` をクリックします。
+3. `解除` ボタンを押します。
+
+## 配布先で登録する方法
+
+配布先で GUI を開かずに右クリックメニューのみ登録したい場合、`imgconv.exe` のあるフォルダーに移動して次を実行します。
 
 ```powershell
-pip install pyinstaller
+.\imgconv.exe --register-menu
 ```
 
-2. `build.bat` を実行
+同様に解除したい場合は次を実行します。
 
 ```powershell
-.\build.bat
+.\imgconv.exe --unregister-menu
 ```
-
-3. 生成された `dist\imgconv.exe` を配布します。
-
-  - 実行時に `imgconv.ico` を含めるため、`build.bat` は `--add-data "imgconv.ico;."` を指定しています。
-  - 実行時のテーマとウィンドウサイズは `settings.json` として同じフォルダーに保存されます。
-  - 右クリックメニュー登録機能を使う場合は、ユーザー環境で `imgconv.exe --register-menu` を実行してください。
-
-## 主な機能
-
-- 画像のドラッグ＆ドロップ
-- フォルダ内の一括読み込み
-- Exif 情報保持オプション
-- 画質スライダー
-- リサイズ（アスペクト比保持）
-- 同名ファイルの自動連番付与
-- 右クリックメニュー連携
-- Windows トースト通知
