@@ -21,7 +21,7 @@ except ImportError:
 
 DND_AVAILABLE = TkinterDnD is not None and DND_FILES is not None
 
-APP_VERSION = "0.9.2"
+APP_VERSION = "0.9.3"
 
 
 def get_app_dir() -> str:
@@ -74,7 +74,20 @@ MENU_KEY_NAMES = [f"ImageFormatConvert_{fmt}" for fmt, _ in FORMAT_MENU_ITEMS]
 LEGACY_MENU_KEYS = ["ImageFormatConvert"]
 DEFAULT_MENU_FORMATS = [fmt for fmt, _ in FORMAT_MENU_ITEMS]
 CONFIG_FILENAME = "settings.json"
-SETTINGS_PATH = os.path.join(get_app_dir(), CONFIG_FILENAME)
+
+def get_settings_path() -> str:
+    """設定ファイルのパスを取得。AppDataに統一"""
+    appdata_path = os.path.join(
+        os.path.expanduser("~"),
+        "AppData",
+        "Local",
+        "imgconv",
+        CONFIG_FILENAME
+    )
+    os.makedirs(os.path.dirname(appdata_path), exist_ok=True)
+    return appdata_path
+
+SETTINGS_PATH = get_settings_path()
 
 pillow_heif.register_heif_opener()
 
@@ -93,8 +106,12 @@ def save_user_settings(settings: dict[str, str]) -> None:
     try:
         with open(SETTINGS_PATH, "w", encoding="utf-8") as handle:
             json.dump(settings, handle, ensure_ascii=False, indent=2)
-    except Exception:
-        pass
+    except Exception as e:
+        # デバッグ用：エラーをログに出力
+        print(f"設定保存エラー: {SETTINGS_PATH}")
+        print(f"エラー内容: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 def show_notification(title: str, message: str) -> None:

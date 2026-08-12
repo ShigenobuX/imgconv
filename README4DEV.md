@@ -48,7 +48,9 @@ pip install pyinstaller
 3. 生成された `dist\imgconv.exe` を配布します。
 
   - 実行時に `imgconv.ico` を含めるため、`build.bat` は `--add-data "imgconv.ico;."` を指定しています。
-  - 実行時のテーマとウィンドウサイズは `settings.json` として同じフォルダーに保存されます。
+  - exe化時のアイコン読み込みは `sys._MEIPASS`（PyInstallerの一時ディレクトリ）に対応しています。
+  - 実行時のテーマとウィンドウサイズは `settings.json` として `C:\Users\[ユーザー名]\AppData\Local\imgconv\` に保存されます。
+    - AppDataに統一されているため、ユーザーがアンインストール時に該当フォルダを削除すればクリーンアップできます。
   - 右クリックメニュー登録機能を使う場合は、ユーザー環境で `imgconv.exe --register-menu` を実行してください。
 
 ## 主な機能

@@ -69,5 +69,7 @@ deactivate
 ## 追加メモ
 
 - `build.bat` は `imgconv.ico` を同梱してビルドするように設定されています。
-- ビルドした `imgconv.exe` は、実行時のテーマとウィンドウサイズを同じフォルダーの `settings.json` に保存します。
+- ビルドした `imgconv.exe` は、実行時のテーマとウィンドウサイズを `settings.json` に保存します。
+  - **保存先:** `C:\Users\[ユーザー名]\AppData\Local\imgconv\settings.json`
+  - AppDataに統一されているため、アンインストール時にこのフォルダを削除すればクリーンアップできます。
 - 右クリックメニューを配布先で使う場合は、配布先環境で `imgconv.exe --register-menu` を実行します。
