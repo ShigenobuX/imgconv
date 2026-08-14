@@ -10,6 +10,7 @@ __pycache__/
 dist/
 build/
 imgconv-distribution.zip
+InstallerOutput/
 
 # IDE/editor config
 .vscode/
@@ -22,3 +23,6 @@ Thumbs.db
 
 # Local settings
 settings.json
+
+# TRASH
+.trash/

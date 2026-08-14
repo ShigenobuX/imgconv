@@ -21,7 +21,7 @@ except ImportError:
 
 DND_AVAILABLE = TkinterDnD is not None and DND_FILES is not None
 
-APP_VERSION = "0.9.3"
+APP_VERSION = "0.9.4"
 
 
 def get_app_dir() -> str:
@@ -413,6 +413,7 @@ class ImageConverterApp:
         self._bind_events()
         self._apply_theme_styles()
         self._configure_listbox_theme()
+        self._update_empty_guide()  # 起動時に空のリストガイドを表示
 
         self.worker_thread: threading.Thread | None = None
 
@@ -429,21 +430,22 @@ class ImageConverterApp:
             text_color="#ffffff",
         )
 
-        self.drag_label = ctk.CTkLabel(
-            self.top_frame,
-            text="ウィンドウ内のどこでもファイルをドロップできます",
-            anchor="w",
-            height=30,
-            fg_color="transparent",
-        )
         self.file_panel_frame = ctk.CTkFrame(self.root)
         self.file_button_panel = ctk.CTkFrame(self.file_panel_frame)
-        self.file_listbox = tk.Listbox(self.file_panel_frame, selectmode=tk.EXTENDED, activestyle="none")
+        # リストと空状態ガイドを重ねて表示するための領域
+        self.file_list_area = ctk.CTkFrame(self.file_panel_frame, fg_color="transparent")
+        self.file_listbox = tk.Listbox(self.file_list_area, selectmode=tk.EXTENDED, activestyle="none")
         self.list_scroll = ctk.CTkScrollbar(self.file_panel_frame, command=self.file_listbox.yview)
         self.file_listbox.configure(yscrollcommand=self.list_scroll.set)
 
-        if not DND_AVAILABLE:
-            self.drag_label.configure(text="ドラッグ＆ドロップは未対応です。ファイル追加ボタンを使用してください。")
+        # ガイドラベル（ファイルリストが空のときに表示）
+        self.empty_guide_label = ctk.CTkLabel(
+            self.file_list_area,
+            text="ここにファイルをドラッグ＆ドロップしてください\n\nまたは上のボタンからファイルを追加できます",
+            text_color="#999999",
+            fg_color="transparent",
+            font=ctk.CTkFont(size=13),
+        )
 
         self.add_files_button = ctk.CTkButton(self.file_button_panel, text="ファイルを追加", command=self._add_files)
         self.add_folder_button = ctk.CTkButton(self.file_button_panel, text="フォルダを追加", command=self._add_folder)
@@ -494,7 +496,6 @@ class ImageConverterApp:
 
     def _layout_widgets(self) -> None:
         self.top_frame.pack(fill="x", padx=16, pady=(16, 0))
-        self.drag_label.pack(side="left", fill="x", expand=True, padx=(0, 8), pady=(8, 8))
         self.settings_button.pack(side="right", pady=(8, 8))
 
         self.file_panel_frame.pack(side="left", fill="both", expand=True, padx=(16, 0), pady=(0, 8))
@@ -503,7 +504,9 @@ class ImageConverterApp:
         self.add_folder_button.pack(fill="x", padx=0, pady=4)
         self.remove_selected_button.pack(fill="x", padx=0, pady=4)
         self.clear_list_button.pack(fill="x", padx=0, pady=(4, 0))
-        self.file_listbox.pack(side="left", fill="both", expand=True, pady=(0, 8))
+        # ガイドはリストの上に重ね、ファイル登録時には非表示にする。
+        self.file_list_area.pack(side="left", fill="both", expand=True, pady=(0, 8))
+        self.file_listbox.pack(fill="both", expand=True)
         self.list_scroll.pack(side="left", fill="y", padx=(8, 16), pady=(0, 8))
 
         self.options_frame.pack(fill="x", padx=16, pady=(0, 8))
@@ -583,7 +586,6 @@ class ImageConverterApp:
             self.top_frame.configure(fg_color="#141414")
             self.bottom_frame.configure(fg_color="#141414")
             self.options_frame.configure(fg_color="#1f1f1f", border_color="#2a2a2a")
-            self.drag_label.configure(fg_color=("#181818", "#1d1d1d"))
         else:
             if isinstance(self.root, ctk.CTk):
                 self.root.configure(fg_color="#f0f0f0")
@@ -592,7 +594,6 @@ class ImageConverterApp:
             self.top_frame.configure(fg_color="#f0f0f0")
             self.bottom_frame.configure(fg_color="#f0f0f0")
             self.options_frame.configure(fg_color="#f2f2f2", border_color="#d0d0d0")
-            self.drag_label.configure(fg_color=("#f0f0f0", "#d9d9d9"))
 
     def _update_quality_label(self, *_args) -> None:
         self.quality_label.configure(text=f"画質: {self.quality_var.get()}")
@@ -712,6 +713,7 @@ class ImageConverterApp:
                 self.file_listbox.insert(tk.END, file_path)
                 added += 1
         if added:
+            self._update_empty_guide()
             self._log_message(f"{added} 件のファイルを追加しました。")
         else:
             self._log_message("追加可能な新しいファイルはありませんでした。")
@@ -724,11 +726,13 @@ class ImageConverterApp:
             file_path = self.file_listbox.get(index)
             self.selected_files.remove(file_path)
             self.file_listbox.delete(index)
+        self._update_empty_guide()
         self._log_message(f"{len(selected_indices)} 件をリストから削除しました。")
 
     def _clear_list(self) -> None:
         self.selected_files.clear()
         self.file_listbox.delete(0, tk.END)
+        self._update_empty_guide()
         self._log_message("ファイルリストをクリアしました。")
 
     def _on_drop(self, event: tk.Event) -> None:
@@ -797,6 +801,13 @@ class ImageConverterApp:
 
     def _update_status(self, message: str) -> None:
         self.root.after(0, lambda: self.status_label.configure(text=message))
+
+    def _update_empty_guide(self) -> None:
+        """ファイルリストが空の場合ガイドを表示、ファイルがある場合は非表示にする"""
+        if len(self.selected_files) == 0:
+            self.empty_guide_label.place(relx=0, rely=0, relwidth=1, relheight=1)
+        else:
+            self.empty_guide_label.place_forget()
 
     def _log_message(self, message: str) -> None:
         def append_log() -> None:

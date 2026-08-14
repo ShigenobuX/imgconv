@@ -73,3 +73,18 @@ deactivate
   - **保存先:** `C:\Users\[ユーザー名]\AppData\Local\imgconv\settings.json`
   - AppDataに統一されているため、アンインストール時にこのフォルダを削除すればクリーンアップできます。
 - 右クリックメニューを配布先で使う場合は、配布先環境で `imgconv.exe --register-menu` を実行します。
+## 配布用インストーラーを作成
+
+Windows 向けのインストーラーは Inno Setup 7 を使用します。まず EXE を作成し、
+[Inno Setup](https://jrsoftware.org/isdl.php) をインストールしてから、次を実行してください。
+
+```powershell
+.\build_installer.bat
+```
+
+作成物は `InstallerOutput\imgconv-0.9.3-setup.exe` です。セットアップでは
+スタートメニューのショートカットを作成し、任意でデスクトップショートカットと
+右クリックメニューの登録を選べます。
+
+アンインストール時には右クリックメニューの登録を自動的に解除します。ユーザー設定は
+`C:\Users\[ユーザー名]\AppData\Local\imgconv\settings.json` に残るため、再インストール時も設定を引き継げます。
