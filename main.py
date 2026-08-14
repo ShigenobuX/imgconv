@@ -21,7 +21,7 @@ except ImportError:
 
 DND_AVAILABLE = TkinterDnD is not None and DND_FILES is not None
 
-APP_VERSION = "0.9.4"
+APP_VERSION = "0.9.5"
 
 
 def get_app_dir() -> str:
@@ -160,12 +160,23 @@ def format_command_for_menu(format_key: str) -> str:
     return f'"{executable}" "{script_path}" --convert-to {format_key} "%1"'
 
 
+def get_context_menu_icon() -> str:
+    """右クリックメニューに登録する永続的なアイコンの場所を返す。"""
+    if getattr(sys, "frozen", False):
+        # onefile 版では MENU_ICON が終了時に消える一時展開フォルダー内を指すため、
+        # インストール済み EXE に埋め込まれた先頭のアイコンを参照する。
+        return f"{sys.executable},0"
+    return MENU_ICON
+
+
 def create_context_menu(selected_formats: list[str] | None = None) -> None:
     if os.name != "nt":
         raise RuntimeError("Context menu registration is supported only on Windows.")
 
-    if not os.path.exists(MENU_ICON):
-        raise FileNotFoundError(f"Icon file not found: {MENU_ICON}")
+    icon_file = sys.executable if getattr(sys, "frozen", False) else MENU_ICON
+    if not os.path.exists(icon_file):
+        raise FileNotFoundError(f"Icon file not found: {icon_file}")
+    menu_icon = get_context_menu_icon()
 
     if selected_formats is None:
         selected_formats = DEFAULT_MENU_FORMATS
@@ -178,7 +189,7 @@ def create_context_menu(selected_formats: list[str] | None = None) -> None:
             menu_name = f"ImageFormatConvert_{fmt}"
             item_key = winreg.CreateKey(root_key, menu_name)
             winreg.SetValueEx(item_key, "MUIVerb", 0, winreg.REG_SZ, label)
-            winreg.SetValueEx(item_key, "Icon", 0, winreg.REG_SZ, MENU_ICON)
+            winreg.SetValueEx(item_key, "Icon", 0, winreg.REG_SZ, menu_icon)
             command_key = winreg.CreateKey(item_key, "command")
             winreg.SetValueEx(command_key, None, 0, winreg.REG_SZ, format_command_for_menu(fmt))
             command_key.Close()

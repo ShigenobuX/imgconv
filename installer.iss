@@ -2,7 +2,7 @@
 ; Build with: ISCC.exe installer.iss
 
 #define MyAppName "imgconv"
-#define MyAppVersion "0.9.4"
+#define MyAppVersion "0.9.5"
 #define MyAppPublisher "imgconv"
 #define MyAppExeName "imgconv.exe"
 
