@@ -21,7 +21,7 @@ except ImportError:
 
 DND_AVAILABLE = TkinterDnD is not None and DND_FILES is not None
 
-APP_VERSION = "0.9.5"
+APP_VERSION = "0.9.6"
 
 
 def get_app_dir() -> str:
@@ -221,36 +221,17 @@ def remove_context_menu() -> None:
 
 
 def normalize_paths_from_drag(data: str) -> list[str]:
+    """ドラッグ＆ドロップで渡される Tcl リストをファイルパスへ変換する。"""
     if not data:
         return []
-    data = data.strip()
-    if data.startswith("{") and data.endswith("}"):
-        data = data[1:-1]
-    paths = []
-    item = ""
-    in_brace = False
-    for char in data:
-        if char == "{":
-            in_brace = True
-            item = ""
-            continue
-        if char == "}":
-            in_brace = False
-            paths.append(item)
-            item = ""
-            continue
-        if in_brace:
-            item += char
-            continue
-        if char.isspace():
-            if item:
-                paths.append(item)
-                item = ""
-            continue
-        item += char
-    if item:
-        paths.append(item)
-    return [p for p in paths if p]
+    try:
+        # tkinterdnd2 の event.data は Tcl リスト形式。
+        # split() のような空白区切りでは、{C:\\My Images\\photo.jpg} を
+        # 1 つのパスとして扱えないため Tcl のパーサーを使う。
+        return list(tk.Tcl().splitlist(data))
+    except tk.TclError:
+        # 想定外の形式でも従来どおり最低限のパスを受け付ける。
+        return [item.strip("{}") for item in data.split() if item]
 
 
 def scan_input_files(paths: list[str]) -> list[str]:
